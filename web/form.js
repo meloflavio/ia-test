@@ -39,41 +39,44 @@ form2.addEventListener("submit", async (event) => {
   content.classList.add("placeholder")
 
   const file = input2.files[0]
-  console.log(file)
-
-
   content.textContent = "Enviando arquivo..."
-
-
   // Cria um FormData e adiciona o arquivo
-  const formData = new FormData();
-  formData.append('file', file); // O 'arquivo' deve corresponder ao nome esperado no servidor
+  const formData = new FormData()
+  formData.append('file', file) // O 'arquivo' deve corresponder ao nome esperado no servidor
 
   try {
     const response = await server.post("/upload", formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
-    });
+      },
+      responseType: 'blob'
+    })
 
-    if (!response.ok) {
-      throw new Error(`Erro: ${response.statusText}`);
+    if (response.status !== 200) {
+      throw new Error(`Erro: ${response.statusText}`)
     }
 
-    const blobSilent = await response.blob();
+    const blobSilent = new Blob([response.data], { type: 'audio/wav' }); // Ajuste o tipo MIME conforme necessário
+
+    console.log(blobSilent)
 
     // adicionar link para download de blobSilent em content
     content.textContent = "Baixe o arquivo abaixo..."
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blobSilent)
-    link.download = "audio.mp4"
-    link.textContent = "Baixar arquivo"
-    content.appendChild(link)
+
+    const link = document.createElement("a");
+
+    // Aqui, se você criou um novo Blob acima, use 'blob' em vez de 'blobSilent'
+    link.href = URL.createObjectURL(blobSilent); // Cria uma URL para o blob
+
+    link.setAttribute('download', 'audio.wav'); // Define o nome do arquivo a ser baixado
+    link.textContent = "Baixar arquivo";
+    content.appendChild(link);
+    content.classList.remove("placeholder");
     content.classList.remove("placeholder")
   } catch (error) {
-    console.error('Erro ao enviar o arquivo:', error);
-    content.textContent = "Falha no envio do arquivo.";
+    console.error('Erro ao enviar o arquivo:', error)
+    content.textContent = "Falha no envio do arquivo."
   } finally {
-    content.classList.remove("placeholder");
+    content.classList.remove("placeholder")
   }
 })
